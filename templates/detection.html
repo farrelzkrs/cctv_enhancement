@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block heading %}Deteksi Objek (Fitur Tambahan){% endblock %}
+{% block content %}
+{% if not available %}
+<div class="card">
+  <div class="card-head"><h2>Fitur deteksi belum aktif</h2></div>
+  <p>Aplikasi enhancement tetap berfungsi penuh tanpa fitur ini. Untuk mengaktifkan deteksi person, car, motorcycle, bus, dan truck, pasang paket opsional di terminal (virtual environment aktif):</p>
+  <pre class="code">pip install ultralytics</pre>
+  <p class="hint">Saat pertama dipakai, bobot <code>yolov8n.pt</code> diunduh otomatis (perlu internet). Mode CPU sudah cukup.</p>
+</div>
+{% else %}
+<div class="workspace">
+  <section class="card">
+    <div class="card-head"><h2>Sumber gambar</h2></div>
+    {% if sources %}
+    <div class="field-col"><label for="det-source">Pilih gambar</label>
+      <select id="det-source">{% for s in sources %}<option value="{{ s.value }}">{{ s.label }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="det-conf">Ambang keyakinan</label><output id="det-conf-out" for="det-conf">0.25</output>
+      <input type="range" id="det-conf" min="0.1" max="0.9" step="0.05" value="0.25"></div>
+    <div class="actions"><button id="btn-detect" class="btn btn-primary" type="button">Jalankan deteksi</button></div>
+    <p class="hint">Bandingkan hasil deteksi pada gambar asli dan pada hasil enhancement. Deteksi hanya menandai kelas objek, bukan mengenali identitas. {% if plate %}Model plat nomor (models/plate.pt) ditemukan dan ikut dijalankan.{% else %}Deteksi plat nomor nonaktif karena models/plate.pt tidak tersedia.{% endif %}</p>
+    {% else %}
+    <div class="empty"><p>Belum ada gambar. Unggah gambar di dashboard terlebih dahulu.</p><a class="btn btn-primary" href="/">Ke dashboard</a></div>
+    {% endif %}
+  </section>
+  <section class="card" id="det-result" hidden>
+    <div class="card-head"><h2>Hasil deteksi</h2><span id="det-summary" class="muted"></span></div>
+    <figure class="det-fig"><img id="det-img" alt="Hasil deteksi objek"></figure>
+    <div id="det-counts" class="chips"></div>
+  </section>
+</div>
+{% endif %}
+{% endblock %}

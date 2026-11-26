@@ -1,0 +1,23 @@
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Runtime data & generated images (otomatis dibuat oleh app.py)
+data/
+static/uploads/
+static/results/
+
+# Bobot model YOLO (diunduh otomatis / file biner besar)
+*.pt

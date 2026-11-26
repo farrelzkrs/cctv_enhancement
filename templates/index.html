@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="workspace">
+  <section class="card" aria-labelledby="h-upload">
+    <div class="card-head"><h2 id="h-upload">Gambar CCTV</h2><span id="upload-count" class="muted">Belum ada gambar</span></div>
+    <label id="dropzone" class="dropzone" tabindex="0">
+      <input id="file-input" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple hidden>
+      <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M12 16V5M7.5 9.5L12 5l4.5 4.5M4 16v2.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V16"/></svg>
+      <strong>Tarik gambar ke sini atau klik untuk memilih</strong>
+      <span>JPG, JPEG, PNG · maks. 10 MB per file · unggah minimal 2 gambar untuk pengujian</span>
+    </label>
+    <div id="thumbs" class="thumbs"></div>
+    <p class="hint">Gunakan gambar CCTV milik sendiri atau yang sudah diizinkan. Tidak punya? Jalankan <code>python generate_samples.py</code> untuk membuat 2 gambar malam sintetis.</p>
+  </section>
+
+  <section class="card controls" aria-labelledby="h-ctrl">
+    <div class="card-head">
+      <h2 id="h-ctrl">Pengaturan Enhancement</h2>
+      <div class="presets" role="group" aria-label="Preset parameter">
+        <button type="button" class="chip" data-preset="ringan" aria-pressed="false">Ringan</button>
+        <button type="button" class="chip" data-preset="malam" aria-pressed="false">Malam gelap</button>
+        <button type="button" class="chip" data-preset="ekstrem" aria-pressed="false">Sangat gelap</button>
+      </div>
+    </div>
+
+    <section class="method" aria-labelledby="m-gamma">
+      <h3 class="method-title" id="m-gamma">Gamma Correction</h3>
+      <div class="field"><label for="gamma">Gamma</label><output for="gamma" id="gamma-out">0.70</output>
+        <input type="range" id="gamma" min="0.3" max="2.0" step="0.05" value="0.7"></div>
+      <p class="hint">Di bawah 1 = lebih terang. Rentang awal yang disarankan untuk citra gelap: 0.6–0.8.</p>
+    </section>
+
+    <section class="method" aria-labelledby="m-clahe">
+      <h3 class="method-title" id="m-clahe">CLAHE</h3>
+      <div class="field"><label for="clip_limit">Clip limit</label><output for="clip_limit" id="clip_limit-out">2.0</output>
+        <input type="range" id="clip_limit" min="0.5" max="8" step="0.5" value="2"></div>
+      <div class="field"><label for="tile_grid">Ukuran tile</label><output for="tile_grid" id="tile_grid-out">8×8</output>
+        <input type="range" id="tile_grid" min="2" max="16" step="1" value="8"></div>
+      <p class="hint">Diterapkan pada kanal L (LAB). Clip limit terlalu tinggi membuat noise dan kontras berlebihan.</p>
+    </section>
+
+    <section class="method" aria-labelledby="m-sharpen">
+      <h3 class="method-title" id="m-sharpen">Sharpening (Unsharp Mask)</h3>
+      <div class="field"><label for="amount">Amount</label><output for="amount" id="amount-out">0.80</output>
+        <input type="range" id="amount" min="0" max="2.5" step="0.1" value="0.8"></div>
+      <div class="field"><label for="sigma">Sigma blur</label><output for="sigma" id="sigma-out">1.2</output>
+        <input type="range" id="sigma" min="0.5" max="4" step="0.1" value="1.2"></div>
+      <div class="field"><label for="threshold">Threshold anti-noise</label><output for="threshold" id="threshold-out">3</output>
+        <input type="range" id="threshold" min="0" max="20" step="1" value="3"></div>
+    </section>
+
+    <div class="actions">
+      <button id="btn-process" class="btn btn-primary" type="button" disabled>Process Image</button>
+      <button id="btn-reset" class="btn" type="button">Reset</button>
+    </div>
+    <p id="select-info" class="hint">Pilih satu gambar pada daftar di kiri.</p>
+  </section>
+</div>
+
+<section id="results" class="results" hidden>
+  <div class="card">
+    <div class="card-head">
+      <h2>Hasil Perbandingan</h2>
+      <div class="tabs" role="tablist" id="view-tabs">
+        <button role="tab" class="tab active" data-view="slider" aria-selected="true">Slider</button>
+        <button role="tab" class="tab" data-view="side" aria-selected="false">Berdampingan</button>
+        <button role="tab" class="tab" data-view="steps" aria-selected="false">Per tahap</button>
+      </div>
+    </div>
+    <div id="view-slider" class="view">
+      <div class="compare" id="compare-main">
+        <img id="cmp-after" alt="Citra hasil enhancement"><img id="cmp-before" class="before" alt="Citra asli">
+        <span class="tag tag-l">Asli</span><span class="tag tag-r">Hasil</span>
+        <div class="bar"><i></i></div>
+        <input type="range" class="cmp-range" min="0" max="100" value="50" aria-label="Geser untuk membandingkan citra asli dan hasil">
+      </div>
+    </div>
+    <div id="view-side" class="view" hidden>
+      <div class="side-grid"><figure><img id="side-before" alt="Citra asli"><figcaption>Asli</figcaption></figure>
+        <figure><img id="side-after" alt="Citra hasil"><figcaption>Hasil enhancement</figcaption></figure></div>
+    </div>
+    <div id="view-steps" class="view" hidden><div id="steps-grid" class="side-grid"></div></div>
+    <div class="actions">
+      <a id="dl-png" class="btn btn-primary" href="#">Unduh PNG</a>
+      <a id="dl-jpg" class="btn" href="#">Unduh JPG</a>
+      <a id="dl-detect" class="btn" href="/detect">Deteksi objek pada gambar</a>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-head"><h2>Histogram</h2>
+        <div class="tabs" id="hist-tabs"><button class="tab active" data-mode="rgb">RGB</button><button class="tab" data-mode="gray">Grayscale</button></div></div>
+      <div class="hist-grid">
+        <figure><canvas id="hist-before" width="520" height="220" aria-label="Histogram citra asli"></canvas><figcaption>Sebelum</figcaption></figure>
+        <figure><canvas id="hist-after" width="520" height="220" aria-label="Histogram citra hasil"></canvas><figcaption>Sesudah</figcaption></figure>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Evaluasi</h2></div>
+      <table class="table" id="eval-table"></table>
+      <div id="warnings"></div>
+      <p class="hint">Brightness = rata-rata intensitas grayscale. Kontras = standar deviasi intensitas. PSNR/SSIM tidak ditampilkan karena tidak ada citra referensi (siang hari) dari adegan yang sama.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Metode dan parameter yang digunakan</h2></div>
+    <ol id="methods" class="method-list"></ol>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block heading %}Riwayat Pemrosesan{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-head"><h2>{{ items|length }} hasil tersimpan</h2>
+    <button class="btn btn-danger" id="btn-cleanup" type="button">Hapus semua unggahan dan hasil</button></div>
+  {% if items %}
+  <div class="hist-list" id="history-list">
+    {% for r in items %}
+    <article class="h-item" data-id="{{ r.id }}">
+      <a href="/result/{{ r.id }}"><img src="{{ url_for('static', filename='results/' + r.result_file) }}" alt="Hasil {{ r.original_name }}" loading="lazy"></a>
+      <div><strong>{{ r.original_name }}</strong>
+        <span class="muted">{{ r.created }}</span>
+        <span class="muted">{% for m in r.methods %}{{ m.name.split(' (')[0] }}{{ ', ' if not loop.last }}{% endfor %}</span>
+        <span class="muted">Brightness {{ r.stats.original.brightness }} → {{ r.stats.enhanced.brightness }}</span></div>
+      <div class="h-actions"><a class="btn" href="/result/{{ r.id }}">Lihat</a>
+        <a class="btn" href="/download/{{ r.id }}?fmt=png">PNG</a>
+        <button class="btn btn-danger" data-del="{{ r.id }}" type="button">Hapus</button></div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty"><p>Belum ada hasil. Proses satu gambar di dashboard, maka hasilnya tersimpan di sini.</p><a class="btn btn-primary" href="/">Ke dashboard</a></div>
+  {% endif %}
+</div>
+{% endblock %}

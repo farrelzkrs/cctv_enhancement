@@ -1,0 +1,7 @@
+# Dependensi utama (cukup untuk seluruh fitur enhancement)
+Flask>=3.0
+opencv-python>=4.8
+numpy>=1.24
+
+# Opsional: fitur Deteksi Objek (YOLO). Hapus tanda # lalu pip install -r requirements.txt, atau jalankan: pip install ultralytics
+ultralytics>=8.1
